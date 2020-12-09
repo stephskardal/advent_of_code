@@ -1,7 +1,7 @@
 def part_1(data, preamble, result = nil)
+  data = data.map(&:to_i)
   data[preamble..].each_with_index do |item, index|
-    sums = data[index, index+preamble].map(&:to_i).combination(2).to_a.map { |b| b[0] + b[1] }
-    result = [item.to_i, index] and break if !sums.include?(item.to_i)
+    result = [item, index] and break if !data[index, index+preamble].combination(2).to_a.map(&:sum).include?(item)
   end
   result
 end
