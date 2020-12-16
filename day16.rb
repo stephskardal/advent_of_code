@@ -9,53 +9,46 @@ def part_2(data)
   valid_matches = []
   valid_tickets.each_with_index do |ticket, ticket_index|
     matches = []
-    ticket.split(',').each_with_index do |ticket_number, index|
-      number = ticket_number.to_i
-      valid_ranges = []
-      ranges.each_with_index do |range, range_index|
+    ticket.split(',').map(&:to_i).each_with_index do |number, index|
+      matches << ranges.map.with_index do |range, range_index|
         if (number >= range[:ranges][0] && number <= range[:ranges][1]) || (number >= range[:ranges][2] && number <= range[:ranges][3])
-          valid_ranges << range_index
+          range_index
         end
       end
-      matches << valid_ranges
     end
     if ticket_index == 0
       valid_matches = matches
     else
-      updated_matches = []
-      valid_matches.each_with_index do |previous_match, match_index|
-        updated_matches << (previous_match & matches[match_index])
+      valid_matches = valid_matches.map.with_index do |previous_match, match_index|
+        (previous_match & matches[match_index])
       end
-      valid_matches = updated_matches
     end
   end
 
-  valid_matches
   # Then, manually eliminate by index, though this can be done programatically:
-  # index_map = {}
-  # while(valid_matches.any? { |b| b.any? })
-  #  if valid_matches.any? { |b| b.size == 1 }
-      # index_map[index] = found value
-  #    valid_matches.each { |r| r.delete_if { |i| i == mapped } }
-  #  end
-  #end
+  index_map = {}
+  while(valid_matches.any? { |b| b.any? })
+    found_set = valid_matches.detect { |b| b.size == 1 }
+    val = found_set.first
+    index_map[valid_matches.index(found_set).to_s] = val
+    valid_matches.each { |r| r.delete_if { |i| i == val } }
+  end
 
-  # Then:
-  # Manually determine where the mapped index is 0 - 5, then:
-  # my_ticket.split(',').map.with_index { |b, i| b if [1, 19, 14, 2, 4, 6].include?(i) }.compact.map(&:to_i).reduce(:*) 
+  # Fields matching "departing" are 0 - 5
+  reverse_map_indices = index_map.select { |k, v| v < 6 }.keys.map(&:to_i)
+
+  my_ticket.split(',').map.with_index { |b, i| b if reverse_map_indices.include?(i) }.compact.map(&:to_i).reduce(:*) 
 end
 
 def to_ranges(inputs)
-  ranges = []
-  inputs.each do |input|
+  inputs.map do |input|
     if input.match(/(.*): (.*)-(.*) or (.*)-(.*)/)
-      ranges << {
+      {
         label: $1,
         ranges: [$2.to_i, $3.to_i, $4.to_i, $5.to_i]
       }
     end
   end
-  ranges
 end
 
 def ticket_inputs
