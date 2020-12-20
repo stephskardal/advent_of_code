@@ -1,4 +1,5 @@
-inputs = "Tile 2953:
+def inputs
+"Tile 2953:
 .###.###..
 .#....#..#
 #.#......#
@@ -1725,11 +1726,39 @@ Tile 1847:
 #.#......#
 ##..##...#
 ..#.#####.".gsub("\n\n", "").gsub(":\n", ':').split('Tile ')[1..].inject({}) { |h, b| h[b.split(':')[0]] = b.split(':')[1].split("\n").map { |d| d.chars } ; h }
+end
 
+def orientations
+  {
+    'o1': Proc.new { |b| b.first.join('') },  # rotate 90 CW
+    'o2': Proc.new { |b| b.first.reverse.join('') },  # rotate 90W and flipped horizontally
+    'o3': Proc.new { |b| b.last.join('') }, # rotate 90 CCW
+    'o4': Proc.new { |b| b.last.reverse.join('') }, # rotate 90 CCW and flipped horizontally
+    'o5': Proc.new { |b| b.map { |z| z.last }.join('') }, # OG layout
+    'o6': Proc.new { |b| b.map { |z| z.last }.reverse.join('') }, # flipped horizontally
+    'o7': Proc.new { |b| b.map { |z| z.first }.join('') }, # flipped vertically
+    'o8': Proc.new { |b| b.map { |z| z.first }.reverse.join('') }, # flipped vertically and horizontally, or rotate 180
+  }
+end
+
+def adjust_array
+  {
+    'o1': Proc.new { |b| b.transpose },
+    'o2': Proc.new { |b| b.transpose.reverse },
+    'o3': Proc.new { |b| b.transpose.map { |z| z.reverse } },
+    'o4': Proc.new { |b| b.transpose.map { |z| z.reverse }.reverse },
+    'o5': Proc.new { |b| b.map { |z| z.reverse } },
+    'o6': Proc.new { |b| b.map { |z| z.reverse }.reverse },
+    'o7': Proc.new { |b| b },
+    'o8': Proc.new { |b| b.reverse },
+  }
+end
+
+data = inputs
 matches = {}
 options = {}
 
-inputs.each do |tile, array|
+data.each do |tile, array|
   options[tile] = []
   options[tile] << array.first
   options[tile] << array.last
@@ -1753,39 +1782,110 @@ end
 
 puts "PART 1: #{matches.select { |k, v| v.length == 2 }.keys.map(&:to_i).reduce(:*)}"
 
-# I don't have time for this.
-
 # STEP 1: build 2D array of tiles via borders / narrowing in
+prev_matches = matches.dup
 
-# borders = matches.select { |k, v| v.length == 2 || 3 }.keys
-# dimension = Math.sqrt(inputs.keys.size).to_i
-# position = [0,0]
-# grid = {}
-# puts "borders are: #{borders.inspect}"
-=begin
-(0..0).each do |y|
-#(0..dimension - 1).each do |y|
-  (0..dimension - 1).each do |x|
+dimension = 12
+position = [0,0]
+grid = {}
+total_grid = []
+
+(0..11).each do |y|
+  rows = (0..9).map { |b| [] }
+  (0..11).each do |x|
     if x == 0 && y == 0
-      pick_one = matches.detect { |k, v| v.length == 2 }[0]
-    elsif y == 0
-      if x == dimension - 1
-      else
-        # puts "looking at: #{matches[grid[[x - 1, 0]]]}"
-        pick_one = matches[grid[[x - 1, 0]]].select { |k| k[1].size == 2 }
-      end
+      pick_one = "2521"
+      orientation = :o5
+    elsif x == 1 && y == 0
+      pick_one = "2239"
     elsif x == 0
+      pick_one = matches[grid[[x, y - 1]]].select { |k| k[1].size == 1 }.first
+    elsif y == 0
+      size = (x == dimension - 1) ? 1 : 2
+      pick_one = matches[grid[[x - 1, y]]].select { |k| matches[k].size == size }.first
     else
+      # look for above one that matches
+      pick_one = (prev_matches[grid[[x, y-1]]] & prev_matches[grid[[x-1,y]]]).first
+    end
+    if x != 0
+      if (x == 1) && ![0,1].include?(y)
+        adjusted = nil
+        adjust_array.each do |k, v|
+          previous_one_match = v.call(data[grid[[x-1,y]]]).map { |z| z.last }.join('')
+          o_match = orientations.select { |key, or_method| or_method.call(data[pick_one]) == previous_one_match }
+          adjusted = v
+          break if o_match.any?
+        end
+        data[grid[[x-1,y]]] = adjusted.call(data[grid[[x-1,y]]])
+      end
+      previous_one_match = data[grid[[x-1,y]]].map { |z| z.last }.join('')
+      o_match = orientations.detect { |key, or_method| or_method.call(data[pick_one]) == previous_one_match }[0]
+      data[pick_one] = adjust_array[o_match].call(data[pick_one])
     end
     grid[[x,y]] = pick_one
     matches.each { |k| k[1] = k[1].delete_if { |b| b == pick_one } }
-    # puts "#{x} #{y} PICK IS #{pick_one} AND matches is: #{matches.inspect}"
   end
 end
-=end
 
-# part 2: adjust 2D array of tiles with regard to orientation
+# Trim the tiles
+def trim_tile(tile)
+  tile.shift
+  tile.pop
+  tile.each do |line|
+    line.shift
+    line.pop
+  end
+end
 
-# part 3: pattern match sea monster to determine best orientation (flipped, rotated, etc)
+# Manually orient each row
+(0..11).each do |y|
+  rows = (0..7).map { |b| [] }
+  (0..11).each do |x|
+    trimmed_tile = trim_tile(data[grid[[x,y]]])
+    (0..7).each do |row|
+      row_flip = [0,1,7,11].include?(y) ? row : 7-row
+      rows[row] << trimmed_tile[row_flip]
+    end
+  end
+  total_grid[y] = rows
+end
 
-# part 4: count all remaining
+result = total_grid.map { |b| b.map { |z| z.join('') }.flatten }.join("\n").split("\n").map { |z| z.chars }
+
+monster = [
+'                  # '.chars,
+'#    ##    ##    ###'.chars,
+' #  #  #  #  #  #   '.chars
+]
+
+# Identified orientation of monster
+[:o5].each do |k, v|
+  adjusted_monster = adjust_array[k].call(monster)
+  monster_hits = {}
+  #puts adjusted_monster.inspect
+  # puts "MONSTER:\n" + adjusted_monster.map { |b| b.join('') }.join("\n")
+  (0..adjusted_monster.first.size - 1).each do |y|
+    (0..adjusted_monster.size - 1).each do |x|
+      monster_hits[[x,y]] = true if adjusted_monster[x][y] == "#"
+    end
+  end
+  (0..100).each do |x|
+    (0..100).each do |y|
+      monster_hit_count = 0
+      check = []
+      monster_hits.each do |v|
+        next if result[v[0][0] + x].nil? || result[v[0][0] + x][v[0][1]+y].nil?
+        check.push(result[v[0][0] + x][v[0][1]+y])
+      end
+      monster_hit_count = check.join('').count('#')
+      if monster_hit_count == 15
+        monster_hits.each do |v|
+          result[v[0][0] + x][v[0][1] + y] = '0'
+        end
+      end
+    end
+  end
+end
+
+#puts result.map { |b| b.join('') }.join("\n")
+puts "PART 2: " + result.map { |b| b.join('') }.join('').count('#').to_s
