@@ -1,3 +1,28 @@
+def both_parts
+  data = inputs
+
+  options = {}
+  data.each do |input|
+    input[1].each do |allergen|
+      options[allergen] = (options[allergen] || input[0]) & input[0]
+    end
+  end
+  safe_i = data.map { |b| b[0] }.flatten.uniq - options.map { |k, v| v }.flatten.uniq
+  puts "PART 1: #{data.map { |input| (input[0] & safe_i).size }.sum}"
+
+  mapped = {}
+  while(mapped.keys.size < options.keys.size) do
+    options.each do |option|
+      unmapped_i1 = option[1] - mapped.keys
+      unmapped_a1 = [option[0]] - mapped.values
+      if unmapped_i1.size == 1 && unmapped_a1.size == 1
+        mapped[unmapped_i1.first] = unmapped_a1.first
+      end
+    end
+  end
+  puts "PART 2: #{mapped.sort_by { |k| k[1] }.map{ |z| z[0] }.join(',')}"
+end
+
 def inputs
 "vjfx pfjrcc rrfg rdjcltd dgjvd rbgkxdq jcdjp qprp dptzgrt bfhd rlpnhg lgshl bqmhk gpqqcz mgpvqx rsq vztnmp klnm gzjgx nhjrzzj rpj lfz gbt dzrv zzlplm zglhrr ncrzbs jpcxzz frclq dbggg btffs cn qbmq xtnrljt zvtzs mdcbj bzfgm tctcqr kgcz qkkl jjfjd fbrjszh psbbsc blghf hvcj mqnccr dlrd kmzhd skhgbh zrpqf kbcbz zsbzcr vqzbq bscrs zbpv fcgtsq qjnlx hdvv qjcdvg btnkx qnxxkx dgc gkvdv zzcncd sfmrhg xvzfl qvzvcqt jjjz qhshq ptfq mbxbh ghjqj gkhxcb qlztc vkxgv jfvsx mtmm sssdn cqtfgb jqgf xxcgh tcqvk dtb mvgm ltd zqjm mtcqt (contains peanuts, shellfish)
 zbxcf fvfct sssdn xqgzsc qvzvcqt hnpmf pfjrcc zzcncd npbpnmk zqjm klnm xstjn ddhmx zbpv gtgc xkd vqzbq ggd qkzp bqmhk mvgm bzfgm mdcbj vdxb nglsdslv dnb bdvzqg mtc gpqqcz skhgbh cljsqk hknpc zsbzcr prbgj btffs vgxzbdh zzfc rpj qbmq kgcz ncjhsb jpcxzz xzmxx ctgnj jjjz hcvqb hhxlz skvqn gbt fcdnv btnkx dvp dmblp rdrc lmd szhc gkhxcb jcdjp vrmcq htztq mhqbbs cn lpqq vqv rhlr dgpsh dtb dlrd rbgkxdq dzrv lfz brntsf zchzcg vztnmp tcqvk vkxgv tvch (contains peanuts, fish, sesame)
@@ -47,39 +72,4 @@ hthvsl bqmhk zsbzcr tpkntx ggd vqjcm mtcqt ctgnj jpcxzz xxcgh vztnmp dvp gbt ssc
 sbcjfl dgjvd jnpcpvkp dgc zlbpk mplcb rdjcltd lvsclh vqzbq tnscnd vztnmp tpkntx qtxs ggd gkhxcb lmd bdll mhqbbs zrpqf gtgc cn kmzhd qprp rcmjb dlrz qjcdvg ncjhsb pfxk ldj qvzvcqt qdmnxt mdcbj rzng dvzldn rpj blghf zvtzs vqjcm bqmhk xhttnt gkvdv jqgf ltd zchzcg xstjn xzmxx zqjm xtnrljt qkkl fsst mvgm rdrc dmblp hsghzn ctgnj mgpvqx qhshq lgshl dnfp tcqvk rsq lkm tctcqr gbt mtcqt hthvsl lfn nhjrzzj dtb zvtx vftnx (contains peanuts, dairy, nuts)".split("\n").map { |b| b.gsub(/\)/, '').split(/ \(contains /) }.each { |i| i[0] = i[0].split(' '); i[1] = i[1].split(', ') }
 end
 
-data = inputs
-options = {}
-
-data.each do |input|
-  input[1].each do |allergen|
-    if !options.has_key?(allergen)
-      options[allergen] = input[0]
-    else
-      options[allergen] = options[allergen] & input[0]
-    end
-  end
-end
-
-safe_i = data.map { |b| b[0] }.flatten.uniq - options.map { |k, v| v }.flatten.uniq
-puts "PART 1: #{data.map { |input| (input[0] & safe_i).size }.sum}"
-
-mapped = {}
-combinations = options.to_a.combination(2).to_a
-while(mapped.keys.size < 8) do
-  combinations.each do |combo|
-    unmapped_i1 = combo[0][1] - mapped.keys
-    unmapped_a1 = [combo[0][0]] - mapped.values
-    unmapped_i2 = combo[1][1] - mapped.keys
-    unmapped_a2 = [combo[1][0]] - mapped.values
-
-    if unmapped_i1.size == 1 && unmapped_a1.size == 1
-      mapped[unmapped_i1.first] = unmapped_a1.first
-    elsif unmapped_i2.size == 1 && unmapped_a2.size == 1
-      mapped[unmapped_i2.first] = unmapped_a2.first
-    elsif (unmapped_a1 & unmapped_a2).size == 1 && (unmapped_i1 & unmapped_i2).size == 1
-      mapped[(unmapped_i1 & unmapped_i2).first] = (unmapped_a1 & unmapped_a2).first
-    end
-  end
-end
-
-puts "PART 2: #{mapped.sort_by { |k| k[1] }.map{ |z| z[0] }.join(',')}"
+both_parts
