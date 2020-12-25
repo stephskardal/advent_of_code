@@ -328,17 +328,16 @@ end
 
 def direction_map
   {
-    x: [0.5, Math.sqrt(0.75)], #ne
+    x: [0.5, Math.sqrt(0.75).round(5)], #ne
     e: [1,0], #e
-    r: [0.5, -1*Math.sqrt(0.75)], #se
-    z: [-0.5,-1*Math.sqrt(0.75)], #sw
+    r: [0.5, -1*Math.sqrt(0.75).round(5)], #se
+    z: [-0.5,-1*Math.sqrt(0.75).round(5)], #sw
     w: [-1,0], #w
-    y: [-0.5, Math.sqrt(0.75)] #nw
+    y: [-0.5, Math.sqrt(0.75).round(5)] #nw
   }
 end
 
 # black is true, white is false
-
 tiles = {}
 input.each do |line|
   position = [0,0]
@@ -357,6 +356,7 @@ puts "PART 1: #{tiles.values.count(true)}"
 
   # First, check existing tiles
   tiles.each do |tile|
+    updated_tiles[tile[0]] = tile[1]
     # Check all neighbors here, expanding new tiles if not defined
     neighbors = []
     direction_map.values.each do |dir|
@@ -368,14 +368,10 @@ puts "PART 1: #{tiles.values.count(true)}"
       end
     end
 
-    # Logical check against paramters for changes
+    # Logical check against parameters for changes
     neighbors_count = neighbors.count(true)
-    if (tile[1] == true) && !([1, 2].include?(neighbors_count))
-      updated_tiles[tile[0]] = false
-    elsif (tile[1] == false) && (neighbors_count == 2)
-      updated_tiles[tile[0]] = true
-    else
-      updated_tiles[tile[0]] = tile[1]
+    if ((tile[1] == true) && !([1, 2].include?(neighbors_count))) || ((tile[1] == false) && (neighbors_count == 2)) 
+      updated_tiles[tile[0]] = !tile[1]
     end
   end
 
@@ -384,9 +380,7 @@ puts "PART 1: #{tiles.values.count(true)}"
     neighbors = direction_map.values.map do |dir|
       tiles[[(tile[0] + dir[0]).round(5), (tile[1] + dir[1]).round(5)]]
     end
-    if neighbors.compact.count(true) == 2
-      updated_tiles[tile] = true
-    end
+    updated_tiles[tile] = true if neighbors.compact.count(true) == 2
   end
 
   # Then update tiles for next round
