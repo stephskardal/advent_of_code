@@ -1,3 +1,3 @@
-def read_input # Rigid assumption it's called input.txt
-  File.open('input.txt').readlines.map(&:chomp)
+def read_input(filename = 'input.txt')
+  File.open(filename).readlines.map(&:chomp)
 end
