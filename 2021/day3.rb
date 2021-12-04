@@ -1,4 +1,4 @@
-require "./read_file"
+require "./helpers"
 
 def to_decimal(binary)
   binary.reverse.chars.map.with_index do |digit, index|

@@ -1,4 +1,4 @@
-require "./read_file"
+require "./helpers"
 
 data = read_input
 
