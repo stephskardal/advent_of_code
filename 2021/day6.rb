@@ -3,7 +3,7 @@ require "./helpers"
 data = read_input('input.txt')
 
 # Part 1 & 2 - Bonus!
-counts = data[0].split(',').map(&:to_i).each_with_object(Hash.new(0)) { |word,counts| counts[word] += 1 }
+counts = data[0].split(',').map(&:to_i).each_with_object(Hash.new(0)) { |ages, counts| counts[ages] += 1 }
 
 (0..255).each do |day|
   updated_counts = (0..8).to_a.inject({}) { |b, a| b[a] = 0; b}
