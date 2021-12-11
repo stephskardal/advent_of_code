@@ -32,3 +32,10 @@ def pad_board(board, pad_char = nil)
   end
   new_board.transpose
 end
+
+def print_board(board)
+  board.each do |row|
+    inner = []
+    puts row.compact.join('')
+  end
+end
