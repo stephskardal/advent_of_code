@@ -2,6 +2,12 @@ def read_input(filename = 'input.txt')
   File.open(filename).readlines.map(&:chomp)
 end
 
+def to_decimal(binary)
+  binary.reverse.chars.map.with_index do |digit, index|
+    digit.to_i * 2**index
+  end.sum
+end
+
 def create_boards(data, split_char = " ")
   boards = []
   board = []
