@@ -26,14 +26,14 @@ end
 
 def pad_board(board, pad_char = nil)
   board.each do |row|
-    row.unshift(nil)
-    row.push(nil)
+    row.unshift(pad_char)
+    row.push(pad_char)
   end
 
   new_board = []
   board.transpose.each do |row|
-    row.unshift(nil)
-    row.push(nil)
+    row.unshift(pad_char)
+    row.push(pad_char)
     new_board << row
   end
   new_board.transpose
