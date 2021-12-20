@@ -15,12 +15,13 @@ p "Starting value: #{image.flatten(2).count("1")}"
 
 rounds = 50
 (1..rounds).each do |round|
-  image = pad_board(image, '0')
-  image = pad_board(image, '0')
-  image = pad_board(image, '0')
+  pad = round%2 == 1 ? "0" : "1"
+  image = pad_board(image, pad)
+  image = pad_board(image, pad)
+
   rows = image.size
   cols = rows
-  new_image = Array.new(rows){Array.new(cols, '0')}
+  new_image = Array.new(rows){Array.new(cols, pad)}
   (1..rows - 2).each do |row|
     (1..cols - 2).each do |col|
       neighbors = []
@@ -32,9 +33,19 @@ rounds = 50
       str = neighbors.join('')
       if mapped_algo.include?(str)
         new_image[row][col] = "1"
+      else
+        new_image[row][col] = "0"
       end
     end
   end
+
+  new_image.shift
+  new_image.pop
+  new_image.each do |row|
+    row.pop
+    row.shift
+  end
+
   image = new_image
   #print_board(new_image)
   p "Round: #{round}: #{new_image.flatten(2).count("1")}"
