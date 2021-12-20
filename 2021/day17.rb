@@ -42,19 +42,15 @@ end
 
 found = []
 
-ranges = [[20,30],[-10,-5]]
 ranges = [[217,240],[-126,-69]]
 
 count = 0
-(0..ranges[0][1]/2).each do |x|
-  (-1000..2000).each do |y|
-    p = step_through(x, y, ranges[0][1], ranges[1][-1])
+(0..ranges[0][1]).each do |x|
+  (ranges[1][0]..ranges[1][0]*-1).each do |y|
+    p = step_through(x, y, ranges[0][1], ranges[1][0])
     if found_a_hit(p, ranges)
       found = found + p
       count += 1
-      #p "found one #{x} and #{y}" # - #{p}"
-    else
-      #p "miss for #{x} and #{y}" # - #{p}"
     end
   end
 end
