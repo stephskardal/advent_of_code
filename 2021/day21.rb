@@ -34,46 +34,54 @@ combos.each { |z| @sums[z.flatten.sum] += 1 }
 
 @universes = 1
 @players = {
-  one: [{ pos: 4, score: 0, count: 1 }],
-  two: [{ pos: 8, score: 0, count: 1 }]
+  one: [{ pos: 0, score: 0, universe_count: 1 }],
+  two: [{ pos: 8, score: 0, universe_count: 1 }]
 }
 
-def multiverse_increment(player, turn)
-  new_player = []
-  @sums.each do |score, universe_count|
-    new_pos = player[:pos] + score
-    new_pos = new_pos%10 == 0 ? 10 : new_pos%10
-    new_score = player[:score] + new_pos
-    new_count = player[:count]*universe_count
-    new_player << { pos: new_pos, score: new_score, count: new_count }
-  end
-  new_player
-end
+@found_win = []
 
-turn = 1
-player = :one
-while(turn < 7) do
-#while !@players.map { |z, v| v.map { |i| i[:score] } }.flatten.any? { |z| z >= 8 } do
-  results = []
-  @players[player].each do |player|
-    inner_results = multiverse_increment(player, turn)
-    inner_results.each do |inner|
-      item = results.detect { |r| r[:score] == inner[:score] && r[:pos] == inner[:pos] }
-      if !item.nil?
-        item[:count] += inner[:count]
+def multiverse_increment(key, player, turn)
+  result = []
+  player.each do |universe_player|
+    @sums.each do |score, universe_count|
+      new_pos = universe_player[:pos] + score
+      new_pos = new_pos%10 == 0 ? 10 : new_pos%10
+      new_score = universe_player[:score] + new_pos
+      new_count = universe_player[:universe_count]*universe_count
+      j = { pos: new_pos, score: new_score, universe_count: new_count }
+
+      if turn < 4
+        result << multiverse_increment(key, [j], turn + 2)
       else
-        results << inner
+        result << j
       end
     end
   end
-  @players[player] = results
-  player = player == :one ? :two : :one
-  turn += 1
+
+  # Dedupping for speed
+  after_turn = result.flatten
+  dedupped = []
+  after_turn.each do |inner|
+    items = after_turn.select { |r| r[:score] == inner[:score] && r[:pos] == inner[:pos] }
+    if items.size > 1
+      count = items.map { |z| z[:universe_count] }.sum
+      dedupped << { score: inner[:score], pos: inner[:pos], universe_count: count }
+    else
+      dedupped << inner
+    end
+  end
+
+  universe_count = dedupped.collect { |b| b[:universe_count] }.sum
+  max_score = dedupped.collect { |b| b[:score] }.max
+  @found_win[turn] = {
+    player: key,
+    universe_count: universe_count,
+    max_score: max_score
+  }
+  dedupped
 end
 
-loser = :one
-#loser = :two if @players[:one].map { |i| i[:score] }.flatten.any? { |z| z > 20 }
+result = multiverse_increment(:one, @players[:one], 1)
+result = multiverse_increment(:two, @players[:two], 2)
 
-p @players[loser].map { |z| z[:score] }
-p @sums.values.sum
-p @players[loser].map { |z| z[:count] }.sum #inject(:*)
+p @found_win
